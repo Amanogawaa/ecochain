@@ -1,0 +1,40 @@
+@import "tailwindcss";
+
+:root {
+  --eco-base: #f7f3ea;
+  --eco-ink: #1f2a24;
+  --eco-forest: #1d3b2a;
+  --eco-moss: #2f6b4f;
+  --eco-sage: #9bb89b;
+  --eco-sand: #e7dcc4;
+  --eco-mist: #f1efe6;
+  --eco-rust: #b97a5a;
+}
+
+@theme inline {
+  --color-background: var(--eco-base);
+  --color-foreground: var(--eco-ink);
+  --font-sans: var(--font-body);
+}
+
+body {
+  background: var(--eco-base);
+  color: var(--eco-ink);
+  font-family: var(--font-body), sans-serif;
+}
+
+.eco-backdrop {
+  background-image:
+    radial-gradient(
+      circle at 18% 18%,
+      rgba(155, 184, 155, 0.45),
+      transparent 55%
+    ),
+    radial-gradient(circle at 82% 0%, rgba(185, 122, 90, 0.2), transparent 45%),
+    linear-gradient(
+      180deg,
+      rgba(247, 243, 234, 1) 0%,
+      rgba(241, 239, 230, 1) 45%,
+      rgba(247, 243, 234, 1) 100%
+    );
+}
