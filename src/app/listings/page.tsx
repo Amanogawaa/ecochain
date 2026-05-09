@@ -1,10 +1,9 @@
 "use client";
 
-import Link from "next/link";
 import { ListingsClient } from "@/ui/donations/ListingsClient";
 import { useQuery } from "convex/react";
 import { api } from "@/../convex/_generated/api";
-import { AuthStatus } from "@/ui/auth/AuthStatus";
+import { MainNav } from "@/ui/navigation/MainNav";
 
 export default function ListingsPage() {
   const donations = useQuery(api.donations.list) ?? [];
@@ -13,48 +12,7 @@ export default function ListingsPage() {
     <div className="relative flex min-h-screen flex-col">
       <div className="eco-backdrop pointer-events-none absolute inset-0 opacity-95" />
 
-      <header className="relative z-10 mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-6">
-        <div className="flex items-center gap-3">
-          <span className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[var(--eco-sand)] bg-[var(--eco-mist)] text-sm font-semibold text-[var(--eco-forest)]">
-            EC
-          </span>
-          <div className="flex flex-col leading-tight">
-            <span className="text-sm uppercase tracking-[0.2em] text-[var(--eco-moss)]">
-              EcoChain
-            </span>
-            <span className="text-xs text-[var(--eco-forest)]/70">
-              Listings
-            </span>
-          </div>
-        </div>
-        <div className="flex items-center gap-3 text-sm">
-          <Link
-            href="/"
-            className="rounded-full border border-[var(--eco-forest)]/20 px-4 py-2 text-[var(--eco-forest)] transition hover:bg-[var(--eco-mist)]"
-          >
-            Back to home
-          </Link>
-          <Link
-            href="/map"
-            className="rounded-full border border-[var(--eco-forest)]/20 px-4 py-2 text-xs font-semibold text-[var(--eco-forest)] transition hover:bg-[var(--eco-mist)]"
-          >
-            Map
-          </Link>
-          <Link
-            href="/notifications"
-            className="rounded-full border border-[var(--eco-forest)]/20 px-4 py-2 text-xs font-semibold text-[var(--eco-forest)] transition hover:bg-[var(--eco-mist)]"
-          >
-            Notifications
-          </Link>
-          <Link
-            href="/listings/new"
-            className="rounded-full bg-[var(--eco-moss)] px-4 py-2 font-semibold text-[var(--eco-base)] shadow-sm transition hover:translate-y-[-1px]"
-          >
-            New listing
-          </Link>
-          <AuthStatus />
-        </div>
-      </header>
+      <MainNav variant="app" subtitle="Listings" />
 
       <main className="relative z-10 mx-auto flex w-full max-w-6xl flex-1 flex-col gap-10 px-6 pb-16">
         <section className="grid gap-6 md:grid-cols-[1.1fr_0.9fr] md:items-end">
@@ -66,9 +24,8 @@ export default function ListingsPage() {
               See what your community can share today.
             </h1>
             <p className="mt-3 max-w-xl text-sm text-[var(--eco-forest)]/70">
-              Use these curated listings to coordinate pickups, deliveries, and
-              verification schedules. This view is now powered by Convex and
-              will sync on-chain proofs later.
+              Explore nearby listings, claim what you can use, and coordinate
+              handoffs with owners and verifiers.
             </p>
           </div>
           <div className="rounded-3xl border border-[var(--eco-sand)] bg-[var(--eco-base)]/80 p-5 shadow-sm">
@@ -93,7 +50,7 @@ export default function ListingsPage() {
 
         <ListingsClient donations={donations} />
 
-        <section className="rounded-[28px] border border-[var(--eco-sand)] bg-white/70 p-6 shadow-sm">
+        {/* <section className="rounded-[28px] border border-[var(--eco-sand)] bg-white/70 p-6 shadow-sm">
           <div className="grid gap-4 md:grid-cols-[1.2fr_0.8fr] md:items-center">
             <div>
               <p className="text-xs uppercase tracking-[0.25em] text-[var(--eco-forest)]/60">
@@ -118,7 +75,7 @@ export default function ListingsPage() {
               </p>
             </div>
           </div>
-        </section>
+        </section> */}
       </main>
     </div>
   );

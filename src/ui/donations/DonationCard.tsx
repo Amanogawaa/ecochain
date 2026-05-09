@@ -47,6 +47,16 @@ export function DonationCard({ donation }: DonationCardProps) {
         <span>Coordinator</span>
         <span className="text-[var(--eco-forest)]">{donation.coordinator}</span>
       </div>
+      {donation.request?.requester ? (
+        <div className="mt-2 flex items-center justify-between text-xs text-[var(--eco-forest)]/60">
+          <span>For</span>
+          <span className="text-[var(--eco-forest)]">
+            {donation.request.requester.name ??
+              donation.request.requester.email ??
+              "the requester"}
+          </span>
+        </div>
+      ) : null}
       <div className="mt-4 text-xs font-semibold text-[var(--eco-moss)]">
         View details →
       </div>

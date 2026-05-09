@@ -20,7 +20,7 @@ export function NotificationsInbox() {
 
   if (!isAuthenticated) {
     return (
-      <div className="rounded-2xl border border-[var(--eco-sand)] bg-white/80 p-4 text-sm text-[var(--eco-forest)]/70">
+      <div className="rounded-2xl border border-[var(--eco-sand)]  bg-white/80 p-4 text-sm text-[var(--eco-forest)]/70">
         <p>Sign in to view your notifications.</p>
         <Link
           href="/auth"
@@ -42,7 +42,7 @@ export function NotificationsInbox() {
         notifications.map((notification) => (
           <div
             key={notification._id}
-            className={`rounded-2xl border p-4 text-sm transition ${
+            className={`rounded-2xl border z-50 p-4 text-sm transition ${
               notification.readAt
                 ? "border-[var(--eco-sand)] bg-white/70 text-[var(--eco-forest)]/70"
                 : "border-[var(--eco-moss)]/40 bg-[var(--eco-mist)] text-[var(--eco-forest)]"

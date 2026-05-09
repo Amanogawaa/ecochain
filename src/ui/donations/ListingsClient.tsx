@@ -31,6 +31,15 @@ export type ConvexDonation = {
   status: DonationStatus;
   coordinator: string;
   updatedAt: string;
+  request?: {
+    id: string;
+    title: string;
+    requester: {
+      id: string;
+      name?: string | null;
+      email?: string | null;
+    } | null;
+  } | null;
 };
 
 type ListingsClientProps = {
@@ -112,6 +121,7 @@ export function ListingsClient({ donations }: ListingsClientProps) {
                 status: donation.status,
                 coordinator: donation.coordinator,
                 updatedAt: donation.updatedAt,
+                request: donation.request,
               }}
             />
           ))

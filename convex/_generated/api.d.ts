@@ -9,9 +9,11 @@
  */
 
 import type * as auth from "../auth.js";
+import type * as claims from "../claims.js";
 import type * as donations from "../donations.js";
 import type * as http from "../http.js";
 import type * as notifications from "../notifications.js";
+import type * as requests from "../requests.js";
 import type * as users from "../users.js";
 
 import type {
@@ -22,9 +24,11 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   auth: typeof auth;
+  claims: typeof claims;
   donations: typeof donations;
   http: typeof http;
   notifications: typeof notifications;
+  requests: typeof requests;
   users: typeof users;
 }>;
 

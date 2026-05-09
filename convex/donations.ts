@@ -2,17 +2,59 @@ import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { getAuthUserId } from "@convex-dev/auth/server";
 
+const enrichDonation = async (ctx: any, donation: any) => {
+  if (!donation.requestId) {
+    return {
+      ...donation,
+      request: null,
+    };
+  }
+
+  const request = await ctx.db.get(donation.requestId);
+  if (!request) {
+    return {
+      ...donation,
+      request: null,
+    };
+  }
+
+  const requester = await ctx.db.get(request.requesterId);
+  return {
+    ...donation,
+    request: {
+      id: request._id,
+      title: request.title,
+      requester: requester
+        ? {
+            id: requester._id,
+            name: requester.name,
+            email: requester.email,
+          }
+        : null,
+    },
+  };
+};
+
 export const list = query({
   args: {},
   handler: async (ctx) => {
-    return await ctx.db.query("donations").order("desc").collect();
+    const donations = await ctx.db.query("donations").order("desc").collect();
+
+    return await Promise.all(
+      donations.map(async (donation) => enrichDonation(ctx, donation)),
+    );
   },
 });
 
 export const getById = query({
   args: { id: v.id("donations") },
   handler: async (ctx, args) => {
-    return await ctx.db.get(args.id);
+    const donation = await ctx.db.get(args.id);
+    if (!donation) {
+      return null;
+    }
+
+    return await enrichDonation(ctx, donation);
   },
 });
 
@@ -30,6 +72,7 @@ export const create = mutation({
       v.literal("scheduled"),
     ),
     coordinator: v.string(),
+    requestId: v.optional(v.id("requests")),
   },
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
@@ -44,6 +87,31 @@ export const create = mutation({
       updatedAt,
       ownerId: userId,
     });
+
+    if (args.requestId) {
+      const request = await ctx.db.get(args.requestId);
+      if (!request) {
+        throw new Error("Request not found");
+      }
+      if (request.status !== "approved") {
+        throw new Error("Only approved requests can be fulfilled");
+      }
+
+      await ctx.db.patch(args.requestId, {
+        status: "fulfilled",
+        fulfilledByDonationId: donationId,
+      });
+
+      await ctx.db.insert("notifications", {
+        userId: request.requesterId,
+        title: "Donation on the way",
+        body: `Someone created a donation for your request "${request.title}".`,
+        link: `/listings/${donationId}`,
+        kind: "request_fulfilled",
+        createdAt,
+      });
+    }
+
     await ctx.db.insert("notifications", {
       userId,
       title: "Listing created",

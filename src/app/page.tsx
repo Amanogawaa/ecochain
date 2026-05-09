@@ -1,5 +1,13 @@
+"use client";
+
 import Link from "next/link";
-import { AuthStatus } from "@/ui/auth/AuthStatus";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useConvexAuth } from "@convex-dev/auth/react";
+import { useQuery } from "convex/react";
+import { api } from "@/../convex/_generated/api";
+import { MainNav } from "@/ui/navigation/MainNav";
+import { DonationsMap } from "@/ui/map/DonationsMap";
 
 const highlights = [
   {
@@ -57,73 +65,39 @@ const listings = [
 ];
 
 export default function Home() {
+  const router = useRouter();
+  const { isAuthenticated, isLoading } = useConvexAuth();
+  const me = useQuery(api.users.me);
+
+  useEffect(() => {
+    if (!isLoading && isAuthenticated && me?.role === "verifier") {
+      router.replace("/verifications");
+    }
+  }, [isLoading, isAuthenticated, me, router]);
+
+  if (!isLoading && isAuthenticated && me?.role === "verifier") {
+    return (
+      <div className="relative flex min-h-screen flex-col">
+        <div className="eco-backdrop pointer-events-none absolute inset-0 opacity-95" />
+        <div className="relative z-10 mx-auto flex w-full max-w-4xl flex-1 items-center justify-center px-6 py-24 text-sm text-[var(--eco-forest)]/70">
+          Redirecting to your verifier dashboard...
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="relative flex min-h-screen flex-col">
       <div className="eco-backdrop pointer-events-none absolute inset-0 opacity-95" />
 
-      <header className="relative z-10 mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-6">
-        <div className="flex items-center gap-3">
-          <span className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[var(--eco-sand)] bg-[var(--eco-mist)] text-sm font-semibold text-[var(--eco-forest)]">
-            EC
-          </span>
-          <div className="flex flex-col leading-tight">
-            <span className="text-sm uppercase tracking-[0.2em] text-[var(--eco-moss)]">
-              EcoChain
-            </span>
-            <span className="text-xs text-[var(--eco-forest)]/70">
-              Chain for Change
-            </span>
-          </div>
-        </div>
-        <nav className="hidden items-center gap-6 text-sm text-[var(--eco-forest)]/80 md:flex">
-          <a
-            href="#impact"
-            className="transition hover:text-[var(--eco-forest)]"
-          >
-            Impact
-          </a>
-          <Link
-            href="/map"
-            className="transition hover:text-[var(--eco-forest)]"
-          >
-            Map
-          </Link>
-          <a
-            href="#listings"
-            className="transition hover:text-[var(--eco-forest)]"
-          >
-            Listings
-          </a>
-          <a
-            href="#process"
-            className="transition hover:text-[var(--eco-forest)]"
-          >
-            How it works
-          </a>
-        </nav>
-        <div className="flex items-center gap-3">
-          <Link
-            href="/notifications"
-            className="rounded-full border border-[var(--eco-forest)]/20 px-4 py-2 text-xs font-semibold text-[var(--eco-forest)] transition hover:bg-[var(--eco-mist)]"
-          >
-            Notifications
-          </Link>
-          <Link
-            href="/listings/new"
-            className="rounded-full border border-[var(--eco-forest)]/15 bg-[var(--eco-forest)] px-4 py-2 text-sm font-semibold text-[var(--eco-base)] shadow-sm transition hover:translate-y-[-1px]"
-          >
-            Start a listing
-          </Link>
-          <AuthStatus />
-        </div>
-      </header>
+      <MainNav variant="landing" subtitle="Chain for Change" />
 
       <main className="relative z-10 mx-auto flex w-full max-w-6xl flex-1 flex-col gap-20 px-6 pb-20 pt-6">
         <section className="grid gap-12 md:grid-cols-[1.1fr_0.9fr] md:items-center">
           <div className="flex flex-col gap-6">
-            <div className="inline-flex w-fit items-center gap-2 rounded-full border border-[var(--eco-sand)] bg-[var(--eco-mist)] px-4 py-1 text-xs uppercase tracking-[0.25em] text-[var(--eco-forest)]">
+            {/* <div className="inline-flex w-fit items-center gap-2 rounded-full border border-[var(--eco-sand)] bg-[var(--eco-mist)] px-4 py-1 text-xs uppercase tracking-[0.25em] text-[var(--eco-forest)]">
               verified sustainability
-            </div>
+            </div> */}
             <h1 className="font-[var(--font-display)] text-4xl leading-tight text-[var(--eco-forest)] sm:text-5xl">
               Transparent sharing for a community that wastes less.
             </h1>
@@ -143,7 +117,7 @@ export default function Home() {
                 Browse listings
               </Link>
             </div>
-            <div className="grid gap-4 sm:grid-cols-3">
+            {/* <div className="grid gap-4 sm:grid-cols-3">
               {highlights.map((highlight) => (
                 <div
                   key={highlight.label}
@@ -160,42 +134,20 @@ export default function Home() {
                   </p>
                 </div>
               ))}
-            </div>
+            </div> */}
           </div>
           <div className="relative">
-            <div className="rounded-[32px] border border-[var(--eco-sand)] bg-[var(--eco-base)]/90 p-6 shadow-lg">
-              <div className="flex items-center justify-between">
+            <div className="rounded-[32px] border border-[var(--eco-sand)] bg-[var(--eco-base)]/90 p-4 shadow-lg">
+              <div className="flex items-center justify-between px-2 pt-2">
                 <span className="text-xs uppercase tracking-[0.2em] text-[var(--eco-forest)]/70">
-                  live exchange
+                  live map
                 </span>
                 <span className="rounded-full bg-[var(--eco-mist)] px-3 py-1 text-xs text-[var(--eco-forest)]">
                   4 hubs active
                 </span>
               </div>
-              <div className="mt-6 space-y-4">
-                {listings.slice(0, 3).map((listing) => (
-                  <div
-                    key={listing.title}
-                    className="rounded-2xl border border-[var(--eco-sand)]/80 bg-white/70 p-4"
-                  >
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <p className="text-sm font-semibold text-[var(--eco-forest)]">
-                          {listing.title}
-                        </p>
-                        <p className="text-xs text-[var(--eco-forest)]/60">
-                          {listing.location}
-                        </p>
-                      </div>
-                      <span className="rounded-full border border-[var(--eco-sage)] px-2 py-1 text-xs text-[var(--eco-forest)]/70">
-                        {listing.category}
-                      </span>
-                    </div>
-                    <p className="mt-2 text-xs text-[var(--eco-forest)]/70">
-                      {listing.status}
-                    </p>
-                  </div>
-                ))}
+              <div className="mt-4 h-[360px] overflow-hidden rounded-2xl border border-[var(--eco-sand)] bg-white/80">
+                <DonationsMap variant="embed" className="h-full" />
               </div>
             </div>
             <div className="pointer-events-none absolute -bottom-6 -left-6 h-20 w-20 rounded-full bg-[var(--eco-sage)]/40 blur-2xl" />
@@ -212,10 +164,6 @@ export default function Home() {
                 Designed for real community flow
               </h2>
             </div>
-            <p className="max-w-md text-sm text-[var(--eco-forest)]/70">
-              Keep everything off-chain while the community operates. Record
-              only verified handoffs when you are ready to deploy.
-            </p>
           </div>
           <div className="grid gap-4 md:grid-cols-3">
             {steps.map((step, index) => (
@@ -294,33 +242,26 @@ export default function Home() {
                 impact log
               </p>
               <h2 className="mt-3 font-[var(--font-display)] text-3xl">
-                Every verified exchange becomes a public proof.
+                Measurable local impact, one verified handoff at a time.
               </h2>
               <p className="mt-3 text-sm text-[var(--eco-base)]/80">
-                When you are ready for Avalanche, EcoChain writes a simple proof
-                hash for every verified donation. This keeps the demo fast today
-                and blockchain-ready tomorrow.
+                EcoChain reduces waste by moving idle items to the people who
+                need them, lowering procurement costs for community hubs, and
+                documenting verified exchanges for transparent reporting.
               </p>
             </div>
-            <div className="rounded-3xl border border-white/20 bg-white/10 p-6">
-              <p className="text-xs uppercase tracking-[0.2em] text-[var(--eco-base)]/70">
-                next verification
-              </p>
-              <p className="mt-3 text-lg font-semibold">
-                Barangay 16 donation bundle
-              </p>
-              <p className="mt-1 text-sm text-[var(--eco-base)]/80">
-                Awaiting volunteer confirmation
-              </p>
-              <button className="mt-6 w-full rounded-full bg-[var(--eco-base)] px-4 py-2 text-sm font-semibold text-[var(--eco-forest)] transition hover:translate-y-[-1px]">
-                Verify handoff
-              </button>
+            <div className="overflow-hidden rounded-2xl border border-white/15 bg-white/20 p-6">
+              <img
+                src="/gathering.png"
+                alt="Impact illustration"
+                className="mx-auto h-auto w-auto opacity-90"
+              />
             </div>
           </div>
         </section>
       </main>
 
-      <footer className="relative z-10 border-t border-[var(--eco-sand)]/80">
+      {/* <footer className="relative z-10 border-t border-[var(--eco-sand)]/80">
         <div className="mx-auto flex w-full max-w-6xl flex-col gap-4 px-6 py-8 text-xs text-[var(--eco-forest)]/70 md:flex-row md:items-center md:justify-between">
           <p>EcoChain demo build for TechFest Hackathon.</p>
           <div className="flex items-center gap-4">
@@ -329,7 +270,7 @@ export default function Home() {
             <span>Community-first</span>
           </div>
         </div>
-      </footer>
+      </footer> */}
     </div>
   );
 }

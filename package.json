@@ -14,6 +14,7 @@
     "@types/mapbox-gl": "^3.5.0",
     "convex": "^1.37.0",
     "ethers": "^6.16.0",
+    "lucide-react": "^1.14.0",
     "mapbox-gl": "^3.23.1",
     "next": "16.2.6",
     "react": "19.2.4",
