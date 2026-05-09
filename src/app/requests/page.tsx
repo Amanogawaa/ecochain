@@ -153,6 +153,8 @@ export default function RequestsPage() {
               Go to sign in →
             </Link>
           </div>
+        ) : me?.role === "verifier" ? (
+          <></>
         ) : (
           <form
             onSubmit={handleCreate}

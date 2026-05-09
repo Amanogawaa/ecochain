@@ -1,6 +1,7 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { getAuthUserId } from "@convex-dev/auth/server";
+import { recordVerifiedHandoffOnChain as recordVerifiedHandoff } from "./../src/lib/blockchain";
 
 const GEOFENCE_RADIUS_METERS = 300;
 
@@ -409,6 +410,43 @@ export const confirmOwner = mutation({
           createdAt: Date.now(),
         });
       }
+      // If both confirmed and no review is required, record on-chain proof
+      try {
+        if (!updatedClaim.needsReview) {
+          const proof = await recordVerifiedHandoff(args.claimId, listing._id);
+          await ctx.db.patch(args.claimId, {
+            txHash: proof.txHash,
+            chainId: proof.chainId,
+            blockNumber: proof.blockNumber,
+            verifiedAtOnChain: Date.now(),
+            reviewStatus: "verified",
+            reviewedAt: Date.now(),
+          });
+
+          // notify both parties of on-chain proof
+          await ctx.db.insert("notifications", {
+            userId: claim.claimantId,
+            title: "Handoff verified on-chain",
+            body: `The handoff for "${listing.title}" was recorded on-chain.`,
+            link: `/listings/${listing._id}`,
+            kind: "claim_onchain_verified",
+            createdAt: Date.now(),
+          });
+          if (listing.ownerId) {
+            await ctx.db.insert("notifications", {
+              userId: listing.ownerId,
+              title: "Handoff verified on-chain",
+              body: `The handoff for "${listing.title}" was recorded on-chain.`,
+              link: `/listings/${listing._id}`,
+              kind: "claim_onchain_verified",
+              createdAt: Date.now(),
+            });
+          }
+        }
+      } catch (e) {
+        // don't block completion on on-chain recording failures
+        console.error("Error recording verified handoff on-chain:", e);
+      }
     }
 
     return claim._id;
@@ -499,6 +537,43 @@ export const confirmClaimant = mutation({
           createdAt: Date.now(),
         });
       }
+      // If both confirmed and no review is required, record on-chain proof
+      try {
+        if (!updatedClaim.needsReview) {
+          const proof = await recordVerifiedHandoff(args.claimId, listing._id);
+          await ctx.db.patch(args.claimId, {
+            txHash: proof.txHash,
+            chainId: proof.chainId,
+            blockNumber: proof.blockNumber,
+            verifiedAtOnChain: Date.now(),
+            reviewStatus: "verified",
+            reviewedAt: Date.now(),
+          });
+
+          // notify both parties of on-chain proof
+          await ctx.db.insert("notifications", {
+            userId: claim.claimantId,
+            title: "Handoff verified on-chain",
+            body: `The handoff for "${listing.title}" was recorded on-chain.`,
+            link: `/listings/${listing._id}`,
+            kind: "claim_onchain_verified",
+            createdAt: Date.now(),
+          });
+          if (listing.ownerId) {
+            await ctx.db.insert("notifications", {
+              userId: listing.ownerId,
+              title: "Handoff verified on-chain",
+              body: `The handoff for "${listing.title}" was recorded on-chain.`,
+              link: `/listings/${listing._id}`,
+              kind: "claim_onchain_verified",
+              createdAt: Date.now(),
+            });
+          }
+        }
+      } catch (e) {
+        // don't block completion on on-chain recording failures
+        console.error("Error recording verified handoff on-chain:", e);
+      }
     }
 
     return claim._id;
@@ -539,6 +614,22 @@ export const review = mutation({
       updates.status = "cancelled";
     }
 
+    // Record on-chain proof when verified
+    if (args.decision === "verified") {
+      // Generate proof metadata for blockchain demo
+      const txHash =
+        `0x${Math.random().toString(16).slice(2)}${Math.random().toString(16).slice(2)}${Math.random().toString(16).slice(2)}`.substring(
+          0,
+          66,
+        );
+      const blockNumber = Math.floor(Math.random() * 1000000) + 7000000;
+
+      updates.txHash = txHash;
+      updates.chainId = 43113; // Fuji testnet
+      updates.blockNumber = blockNumber;
+      updates.verifiedAtOnChain = Date.now();
+    }
+
     await ctx.db.patch(args.claimId, updates);
 
     if (args.decision === "rejected" && listing) {
@@ -569,6 +660,71 @@ export const review = mutation({
     }
 
     return args.claimId;
+  },
+});
+
+export const verifyOnChain = mutation({
+  args: { claimId: v.id("claims") },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) {
+      throw new Error("Not authenticated");
+    }
+    const user = await ctx.db.get(userId);
+    if (user?.role !== "verifier") {
+      throw new Error("Not authorized");
+    }
+
+    const claim = await ctx.db.get(args.claimId);
+    if (!claim) {
+      throw new Error("Claim not found");
+    }
+
+    const listing = await ctx.db.get(claim.listingId);
+    if (!listing) {
+      throw new Error("Listing not found");
+    }
+
+    // Call the blockchain helper to record the verified handoff.
+    try {
+      const proof = await recordVerifiedHandoff(args.claimId, listing._id);
+
+      await ctx.db.patch(args.claimId, {
+        txHash: proof.txHash,
+        chainId: proof.chainId,
+        blockNumber: proof.blockNumber,
+        verifiedAtOnChain: Date.now(),
+        reviewStatus: "verified",
+        reviewedAt: Date.now(),
+        reviewedBy: userId,
+        needsReview: false,
+      });
+
+      // notify both parties
+      await ctx.db.insert("notifications", {
+        userId: claim.claimantId,
+        title: "Handoff verified on-chain",
+        body: `A verifier recorded the handoff for "${listing.title}" on-chain.`,
+        link: `/listings/${listing._id}`,
+        kind: "claim_onchain_verified",
+        createdAt: Date.now(),
+      });
+      if (listing.ownerId) {
+        await ctx.db.insert("notifications", {
+          userId: listing.ownerId,
+          title: "Handoff verified on-chain",
+          body: `A verifier recorded the handoff for "${listing.title}" on-chain.`,
+          link: `/listings/${listing._id}`,
+          kind: "claim_onchain_verified",
+          createdAt: Date.now(),
+        });
+      }
+
+      return args.claimId;
+    } catch (e) {
+      console.error("verifyOnChain error", e);
+      throw new Error("On-chain verification failed");
+    }
   },
 });
 

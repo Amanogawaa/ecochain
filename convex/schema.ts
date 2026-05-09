@@ -68,6 +68,11 @@ export default defineSchema({
     reviewedAt: v.optional(v.number()),
     reviewedBy: v.optional(v.id("users")),
     createdAt: v.number(),
+    // Blockchain proof fields
+    txHash: v.optional(v.string()),
+    chainId: v.optional(v.number()),
+    blockNumber: v.optional(v.number()),
+    verifiedAtOnChain: v.optional(v.number()),
   })
     .index("by_listing", ["listingId"])
     .index("by_claimant", ["claimantId"])

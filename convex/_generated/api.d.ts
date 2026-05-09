@@ -9,6 +9,7 @@
  */
 
 import type * as auth from "../auth.js";
+import type * as blockchain from "../blockchain.js";
 import type * as claims from "../claims.js";
 import type * as donations from "../donations.js";
 import type * as http from "../http.js";
@@ -24,6 +25,7 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   auth: typeof auth;
+  blockchain: typeof blockchain;
   claims: typeof claims;
   donations: typeof donations;
   http: typeof http;

@@ -1,15 +1,29 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useMutation, useQuery } from "convex/react";
 import { useAuthActions, useConvexAuth } from "@convex-dev/auth/react";
+import { api } from "@/../convex/_generated/api";
 
 export default function AuthPage() {
+  const router = useRouter();
   const { signIn } = useAuthActions();
   const { isAuthenticated } = useConvexAuth();
+  const me = useQuery(api.users.me);
+  const ensureRole = useMutation(api.users.ensureRole);
   const [flow, setFlow] = useState<"signIn" | "signUp">("signIn");
   const [role, setRole] = useState<"user" | "verifier">("user");
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!isAuthenticated || !me) {
+      return;
+    }
+
+    router.replace(me.role === "verifier" ? "/verifications" : "/");
+  }, [isAuthenticated, me, router]);
 
   const handlePassword = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -19,6 +33,9 @@ export default function AuthPage() {
 
     try {
       await signIn("password", formData);
+      if (flow === "signUp") {
+        await ensureRole({ role });
+      }
     } catch (e) {
       setError("Unable to sign in. Please check your credentials.");
     }
@@ -68,7 +85,7 @@ export default function AuthPage() {
           </div>
           {isAuthenticated ? (
             <p className="mt-6 text-sm text-[var(--eco-forest)]/70">
-              You are already signed in.
+              Redirecting you to your dashboard...
             </p>
           ) : (
             <form onSubmit={handlePassword} className="mt-6 grid gap-4">
@@ -116,14 +133,14 @@ export default function AuthPage() {
               </button>
             </form>
           )}
-          <div className="mt-6 border-t border-[var(--eco-sand)]/70 pt-4">
+          {/* <div className="mt-6 border-t border-[var(--eco-sand)]/70 pt-4">
             <button
               onClick={() => void handleGoogle()}
               className="w-full rounded-full border border-[var(--eco-forest)]/20 px-4 py-3 text-sm font-semibold text-[var(--eco-forest)] transition hover:bg-[var(--eco-mist)]"
             >
               Continue with Google
             </button>
-          </div>
+          </div> */}
           {error ? (
             <p className="mt-4 text-xs text-[var(--eco-rust)]">{error}</p>
           ) : null}

@@ -39,6 +39,7 @@ export function ListingDetailClient({ id }: ListingDetailClientProps) {
   const cancelClaim = useMutation(api.claims.cancel);
   const confirmOwner = useMutation(api.claims.confirmOwner);
   const confirmClaimant = useMutation(api.claims.confirmClaimant);
+  const verifyOnChain = useMutation(api.claims.verifyOnChain);
 
   const [geoError, setGeoError] = useState<string | null>(null);
 
@@ -144,8 +145,8 @@ export function ListingDetailClient({ id }: ListingDetailClientProps) {
             </div>
           ) : null}
         </div>
-        <div className="rounded-2xl border border-[var(--eco-sand)] bg-[var(--eco-mist)] p-5 text-xs text-[var(--eco-forest)]/70">
-          <p className="text-xs uppercase tracking-[0.2em] text-[var(--eco-forest)]/60">
+        {/* <div className="rounded-2xl border border-[var(--eco-sand)] bg-[var(--eco-mist)] p-5 text-xs text-[var(--eco-forest)]/70"> */}
+        {/* <p className="text-xs uppercase tracking-[0.2em] text-[var(--eco-forest)]/60">
             Activity
           </p>
           <p className="mt-3 text-base font-semibold text-[var(--eco-forest)]">
@@ -154,11 +155,32 @@ export function ListingDetailClient({ id }: ListingDetailClientProps) {
           <p className="mt-2">
             Keep this detail view handy for your demo. This is where the
             verification button can later trigger the Avalanche transaction.
-          </p>
-          <button className="mt-4 w-full rounded-full border border-[var(--eco-forest)]/20 bg-white/70 px-4 py-2 text-xs font-semibold text-[var(--eco-forest)] transition hover:translate-y-[-1px]">
+          </p> */}
+        {me?.role === "verifier" ? (
+          <button
+            onClick={async () => {
+              try {
+                // pick a fulfilled claim for this listing (or the first claim)
+                const target =
+                  claims.find((c) => c.status === "fulfilled" && !c.txHash) ||
+                  claims[0];
+                if (!target) {
+                  setGeoError("No claim available to verify on-chain.");
+                  return;
+                }
+                await verifyOnChain({ claimId: target._id });
+              } catch (e) {
+                setGeoError("On-chain verification failed.");
+              }
+            }}
+            className="mt-4 w-full rounded-full border border-[var(--eco-forest)]/20 bg-white/70 px-4 py-2 text-xs font-semibold max-h-10 text-[var(--eco-forest)] transition hover:translate-y-[-1px]"
+          >
             Verify handoff
           </button>
-        </div>
+        ) : (
+          <div className="mt-4" />
+        )}
+        {/* </div> */}
       </section>
 
       <section className="grid gap-4 rounded-[32px] border border-[var(--eco-sand)] bg-white/80 p-6 shadow-sm">
@@ -175,10 +197,10 @@ export function ListingDetailClient({ id }: ListingDetailClientProps) {
             Listing id: {donation._id}
           </span>
         </div>
-        <p className="text-sm text-[var(--eco-forest)]/70">
+        {/* <p className="text-sm text-[var(--eco-forest)]/70">
           Add item description, pickup windows, or a QR code here once you
           connect to your backend or on-chain verifier.
-        </p>
+        </p> */}
         {donation.request ? (
           <p className="text-xs text-[var(--eco-forest)]/70">
             This donation is linked to the request "{donation.request.title}".
@@ -222,6 +244,11 @@ export function ListingDetailClient({ id }: ListingDetailClientProps) {
                 </p>
               </div>
             ) : null}
+          </div>
+        ) : me?.role === "verifier" ? (
+          <div className="rounded-2xl border border-[var(--eco-sand)] bg-white/70 p-4 text-xs text-[var(--eco-forest)]/70">
+            Verifiers cannot claim listings. Use the dashboard to review and
+            verify handoffs.
           </div>
         ) : (
           <button
@@ -285,6 +312,24 @@ export function ListingDetailClient({ id }: ListingDetailClientProps) {
                         <p className="mt-2 text-[11px] text-[var(--eco-forest)]/60">
                           Review status: {claim.reviewStatus}
                         </p>
+                      ) : null}
+                      {claim.reviewStatus === "verified" && claim.txHash ? (
+                        <div className="mt-2 pt-2 border-t border-[var(--eco-sand)]">
+                          <p className="text-[11px] font-semibold text-[var(--eco-moss)]">
+                            ✓ Verified on Avalanche Fuji (Simulated)
+                          </p>
+                          <p className="text-[10px] mt-1 font-mono break-all text-[var(--eco-forest)]/60">
+                            {claim.txHash}
+                          </p>
+                          <a
+                            href={`https://testnet.snowscan.xyz/tx/${claim.txHash}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-[10px] text-[var(--eco-moss)] hover:underline"
+                          >
+                            View proof →
+                          </a>
+                        </div>
                       ) : null}
                       {claim.needsReview ? (
                         <p className="mt-2 text-[11px] text-[var(--eco-rust)]">
