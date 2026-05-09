@@ -54,7 +54,7 @@ export async function recordVerifiedHandoffOnChain(
         return {
           txHash: receipt.transactionHash,
           blockNumber: receipt.blockNumber,
-          chainId: (await provider.getNetwork()).chainId,
+          chainId: Number(network.chainId),
         };
       } catch (e) {
         console.error(

@@ -20,7 +20,7 @@ type ListingDetailClientProps = {
 };
 
 type DonationDetail = Donation & {
-  id: string;
+  _id: Id<"donations">;
   ownerId?: Id<"users">;
   requestId?: Id<"requests">;
 };
